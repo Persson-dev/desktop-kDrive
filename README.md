@@ -1,6 +1,23 @@
 # Infomaniak kDrive app
 [![Extended tests - All OS](https://github.com/Infomaniak/desktop-kDrive/actions/workflows/build-and-run-extended-tests.yml/badge.svg)](https://github.com/Infomaniak/desktop-kDrive/actions/workflows/build-and-run-extended-tests.yml)
 
+## Flatpak infos
+
+This is a fork making kDrive compatible with flatpak.
+
+
+Somethings are a little cursed and probably won't work well. Don't blame me if something refuses to work, I warned you!
+
+By default, only `~/kDrive` folder can be synchronized. You need to manually add other directories to the sandbox (using Flatseal for example) if you want to sync your files to another folder in your PC. You can also just give it access to all your system files, this works too.
+
+Command used to build the bundle :
+```sh
+flatpak-builder builddir com.infomaniak.kdrive.yaml --sandbox --repo=repo
+flatpak build-bundle ./repo kDrive.flatpak com.infomaniak.kdrive --runtime-repo=https://dl.flathub.org/repo/flathub.flatpakrepo
+```
+
+The built flatpak are available on the [releases page](https://github.com/Persson-dev/desktop-kDrive/releases).
+
 ## The Desktop application for [kDrive by Infomaniak](https://www.infomaniak.com/kdrive).
 ### Synchronise, share, collaborate.  The Swiss cloud that’s 100% secure.
 
