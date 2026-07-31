@@ -1463,12 +1463,16 @@ void ClientGui::onShutdown() {
 
 bool ClientGui::osRequireMenuTray() const {
 #ifdef Q_OS_LINUX
-    QString type;
-    if (QString version; KDC::GuiUtility::getLinuxDesktopType(type, version)) {
-        if (type.contains("GNOME") && version.toDouble() >= 40) {
-            return true;
+    #ifdef KD_FLATPAK
+        return true;
+    #else
+        QString type;
+        if (QString version; KDC::GuiUtility::getLinuxDesktopType(type, version)) {
+            if (type.contains("GNOME") && version.toDouble() >= 40) {
+                return true;
+            }
         }
-    }
+    #endif
 #endif
     return false;
 }
