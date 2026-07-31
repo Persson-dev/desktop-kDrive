@@ -50,6 +50,9 @@ static std::string homeDirectoryStr() {
 }
 
 SyncPath CommonUtility::getGenericAppSupportDir() {
+#ifdef KD_FLATPAK
+    SyncPath appSupportPath(CommonUtility::envVarValue("XDG_CONFIG_HOME"));
+#else
     const auto homeDir = homeDirectoryStr();
     if (homeDir.empty()) return {};
 
@@ -67,6 +70,7 @@ SyncPath CommonUtility::getGenericAppSupportDir() {
             return {};
         }
     }
+#endif
 
     return appSupportPath;
 }

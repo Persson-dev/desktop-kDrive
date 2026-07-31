@@ -40,9 +40,32 @@
 #include <Poco/File.h>
 #include <Poco/Exception.h>
 
+#ifdef KD_FLATPAK
+#include <QDBusInterface>
+#include <QDBusReply>
+#include <QRandomGenerator>
+#endif
+
 namespace KDC {
 
 static const auto mimeType = "x-scheme-handler/kdrive";
+
+#ifdef KD_FLATPAK
+// TODO: make this class actually do something ...
+class DBusHandler : public QObject {
+    Q_OBJECT
+  public:
+    DBusHandler(){}
+
+  public slots:
+    void launchAtStartupRequested(uint response, const QVariantMap& results) {
+        // TODO: handle error
+        // if (response > 0) {
+        //     LOGW_WARN(logger(), L"DBus Error: the request to autostart was cancelled.");
+        // }
+    }
+};
+#endif
 
 namespace {
 int parseLineForRamStatus(char *line) {
@@ -207,6 +230,40 @@ bool Utility::hasLaunchOnStartup(const std::string &appName) {
 }
 
 bool Utility::setLaunchOnStartup(const std::string &appName, const std::string &guiName, bool enable) {
+#ifdef KD_FLATPAK
+    QDBusConnection sessionBus = QDBusConnection::sessionBus();
+    QDBusMessage msg = QDBusMessage::createMethodCall("org.freedesktop.portal.Desktop",
+                                                      "/org/freedesktop/portal/desktop",
+                                                      "org.freedesktop.portal.Background",
+                                                      "RequestBackground");
+
+    QMap<QString, QVariant> options;
+    options["autostart"] = QVariant(enable);
+    options["reason"] = QVariant("Launch KDrive at startup");
+    int token = QRandomGenerator::global()->bounded(1000, 9999);
+    options["handle_token"] = QVariant(QString("com/infomaniak/kdrive/%1").arg(token));
+
+    msg << "" << options;
+
+    QDBusMessage response = sessionBus.call(msg);
+
+    QDBusObjectPath handle = response.arguments().at(0).value<QDBusObjectPath>();
+
+    DBusHandler dbusHandler;
+
+    bool res = sessionBus.connect("org.freedesktop.portal.Desktop",
+                                  handle.path(),
+                                  "org.freedesktop.portal.Request",
+                                  "Response",
+                                  &dbusHandler,
+                                  SLOT(launchAtStartupRequested(uint, QVariantMap)));
+
+    if (!res) {
+        LOGW_WARN(logger(), L"DBus Error: could not connect to org.freedesktop.portal.Request");
+    }
+
+    return res;
+#else
     const auto userAutoStartDirPath = getUserAutostartDir();
     const auto userAutoStartFilePath = userAutoStartDirPath / (appName + ".desktop");
     if (enable) {
@@ -245,6 +302,7 @@ bool Utility::setLaunchOnStartup(const std::string &appName, const std::string &
     }
 
     return true;
+#endif
 }
 
 bool Utility::hasSystemLaunchOnStartup(const std::string &) {
@@ -369,3 +427,10 @@ bool Utility::runCommand(const std::string &launchPath, const std::vector<std::s
 
 
 } // namespace KDC
+
+#ifdef KD_FLATPAK
+
+// I'm not competent enough to actually understand why does this work ...
+#include "utility_linux.moc"
+
+#endif
