@@ -10,6 +10,10 @@ find_package(Poco 1.13.3 REQUIRED Foundation Net JSON Util)
 find_package(OpenSSL 3.1.0 REQUIRED SSL Crypto)
 find_package(xxHash 0.8.2 REQUIRED)
 
+if(FLATPAK_BUILD)
+    find_package(Qt6 REQUIRED DBus)
+endif()
+
 if(UNIX AND CMAKE_BUILD_TYPE MATCHES "RelWithDebInfo")
     # Use fallback library types for imported dependencies
     set(CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO RelWithDebInfo NoConfig)
@@ -138,6 +142,10 @@ target_link_libraries(${libcommonserver_NAME}
     Poco::Foundation Poco::Net Poco::JSON Poco::Util
     OpenSSL::SSL OpenSSL::Crypto
     xxHash::xxhash)
+
+if(FLATPAK_BUILD)
+    target_link_libraries(${libcommonserver_NAME} Qt6::DBus)
+endif()
 
 if(WIN32)
     target_link_libraries(${libcommonserver_NAME}
