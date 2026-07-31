@@ -196,12 +196,16 @@ PreferencesWidget::PreferencesWidget(std::shared_ptr<ClientGui> gui, QWidget *pa
         launchAtStartupSwitch->setCheckState(Qt::Checked);
         launchAtStartupSwitch->setDisabled(true);
     } else {
-        bool hasLaunchAtStartup = false;
-        exitCode = GuiRequests::hasLaunchOnStartup(hasLaunchAtStartup);
-        if (exitCode != ExitCode::Ok) {
-            qCWarning(lcPreferencesWidget()) << "Error in GuiRequests::hasLaunchOnStartup";
-        }
-        launchAtStartupSwitch->setCheckState(hasLaunchAtStartup ? Qt::Checked : Qt::Unchecked);
+        #ifdef KD_FLATPAK
+            launchAtStartupSwitch->setCheckState(ParametersCache::instance()->parametersInfo().autoStart() ? Qt::Checked : Qt::Unchecked);
+        #else
+            bool hasLaunchAtStartup = false;
+            exitCode = GuiRequests::hasLaunchOnStartup(hasLaunchAtStartup);
+            if (exitCode != ExitCode::Ok) {
+                qCWarning(lcPreferencesWidget()) << "Error in GuiRequests::hasLaunchOnStartup";
+            }
+            launchAtStartupSwitch->setCheckState(hasLaunchAtStartup ? Qt::Checked : Qt::Unchecked);
+        #endif
     }
     launchAtStartupBox->addWidget(launchAtStartupSwitch);
     generalBloc->addSeparator();

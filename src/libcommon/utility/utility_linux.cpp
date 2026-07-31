@@ -37,6 +37,9 @@
 namespace KDC {
 
 SyncPath CommonUtility::getGenericAppSupportDir() {
+#ifdef KD_FLATPAK
+    SyncPath appSupportPath(CommonUtility::envVarValue("XDG_CONFIG_HOME"));
+#else
     const char *homeDir;
     if ((homeDir = getenv("HOME")) == NULL) {
         homeDir = getpwuid(getuid())->pw_dir;
@@ -56,6 +59,7 @@ SyncPath CommonUtility::getGenericAppSupportDir() {
             return {};
         }
     }
+#endif
 
     return appSupportPath;
 }
