@@ -11,6 +11,8 @@
   <developer_name>Infomaniak</developer_name>
 
   <releases>
+    <release date="2026-09-29" version="3.8.7" />
+    <release date="2026-08-31" version="3.8.6" />
     <release date="2026-06-02" version="3.8.5" />
   </releases>
 
